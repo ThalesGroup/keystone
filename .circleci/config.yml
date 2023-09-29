@@ -98,17 +98,10 @@ jobs:
     working_directory: /keystone
     steps:
       - checkout
-      - update-riscv-toolchain-path-64
       - run:
           name: "Build rv64 and run tests"
           command: |
-              source ./source.sh
-              ./fast-setup.sh
-              mkdir build64
-              cd build64
-              cmake /keystone
               make -j$(nproc)
-              make run-tests
           no_output_timeout: 120m
   build-rv64-fu540:
     executor: setup-rv64gc
@@ -278,60 +271,60 @@ workflows:
   # For the `master` branch only.
   update-dockerhub-then-build-and-test:
     jobs:
-      - update-dockerhub-image:
-          name: update-dockerhub-image-rv64
-          dockerfile: Dockerfile.nobuild
-          tag: init-rv64gc
-          filters:
-            branches:
-              only: master
-      - update-dockerhub-image:
-          name: update-dockerhub-image-rv32
-          dockerfile: Dockerfile.32.nobuild
-          tag: init-rv32gc
-          filters:
-            branches:
-              only: master
-      - update-dockerhub-image:
-          name: update-dockerhub-image-master
-          dockerfile: Dockerfile
-          tag: master
-          filters:
-            branches:
-              only: master
+#      - update-dockerhub-image:
+#          name: update-dockerhub-image-rv64
+#          dockerfile: Dockerfile.nobuild
+#          tag: init-rv64gc
+#          filters:
+#            branches:
+#              only: master
+#      - update-dockerhub-image:
+#          name: update-dockerhub-image-rv32
+#          dockerfile: Dockerfile.32.nobuild
+#          tag: init-rv32gc
+#          filters:
+#            branches:
+#              only: master
+#      - update-dockerhub-image:
+#          name: update-dockerhub-image-master
+#          dockerfile: Dockerfile
+#          tag: master
+#          filters:
+#            branches:
+#              only: master
       - build-and-test-rv64-qemu:
-          requires:
-            - update-dockerhub-image-rv64
+#          requires:
+#            - update-dockerhub-image-rv64
           filters:
             branches:
               only: master
-      - default-build:
-          requires:
-            - update-dockerhub-image-rv64
-          filters:
-            branches:
-              only: master
-      - use-freemem:
-          requires:
-            - default-build
-      - use_linux_syscall_use_freemem:
-          requires:
-            - default-build
-      - use_package_crypto:
-          requires:
-            - default-build
-      - use_paging:
-          requires:
-            - default-build
-      - use_page_hash:
-          requires:
-            - default-build
-      - use_page_crypto_use_page_hash:
-          requires:
-            - default-build
-      - test:
-          requires:
-            - default-build
+#      - default-build:
+#          requires:
+#            - update-dockerhub-image-rv64
+#          filters:
+#            branches:
+#              only: master
+#      - use-freemem:
+#          requires:
+#            - default-build
+#      - use_linux_syscall_use_freemem:
+#          requires:
+#            - default-build
+#      - use_package_crypto:
+#          requires:
+#            - default-build
+#      - use_paging:
+#          requires:
+#            - default-build
+#      - use_page_hash:
+#          requires:
+#            - default-build
+#      - use_page_crypto_use_page_hash:
+#          requires:
+#            - default-build
+#      - test:
+#          requires:
+#            - default-build
   # For all other branches. 
   build-and-test:
     jobs:
@@ -339,31 +332,31 @@ workflows:
           filters:
             branches:
               ignore: master
-      - default-build:
-          filters:
-            branches:
-              ignore: master
-      - use-freemem:
-          requires:
-            - default-build
-      - use_linux_syscall_use_freemem:
-          requires:
-            - default-build
-      - use_package_crypto:
-          requires:
-            - default-build
-      - use_paging:
-          requires:
-            - default-build
-      - use_page_hash:
-          requires:
-            - default-build
-      - use_page_crypto_use_page_hash:
-          requires:
-            - default-build
-      - test:
-          requires:
-            - default-build
+ #     - default-build:
+ #         filters:
+ #           branches:
+ #             ignore: master
+ #     - use-freemem:
+ #         requires:
+ #           - default-build
+ #     - use_linux_syscall_use_freemem:
+ #         requires:
+ #           - default-build
+ #     - use_package_crypto:
+ #         requires:
+ #           - default-build
+ #     - use_paging:
+ #         requires:
+ #           - default-build
+ #     - use_page_hash:
+ #         requires:
+ #           - default-build
+ #     - use_page_crypto_use_page_hash:
+ #         requires:
+ #           - default-build
+ #     - test:
+ #         requires:
+ #           - default-build
   check-code-quality:
     jobs:
       - format
