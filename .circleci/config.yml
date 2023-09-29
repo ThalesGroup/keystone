@@ -101,8 +101,11 @@ jobs:
       - run:
           name: "Build rv64 and run tests"
           command: |
+              set -e
               make -j$(nproc)
           no_output_timeout: 120m
+      - store_artifacts:
+          path: build-generic64/build.log
   build-rv64-fu540:
     executor: setup-rv64gc
     working_directory: /keystone
