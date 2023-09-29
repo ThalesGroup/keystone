@@ -6,9 +6,11 @@ executors:
   setup-rv64gc:
     docker:
       - image: keystoneenclaveorg/keystone:init-rv64gc
+    resource_class: large
   setup-rv32gc:
     docker:
       - image: keystoneenclaveorg/keystone:init-rv32gc
+    resource_class: large
 
 
 commands:
@@ -102,7 +104,7 @@ jobs:
           name: "Build rv64 and run tests"
           command: |
               set -e
-              make -j$(nproc)
+              make -j1
           no_output_timeout: 120m
       - store_artifacts:
           path: build-generic64/build.log
