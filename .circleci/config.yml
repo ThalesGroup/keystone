@@ -22,6 +22,9 @@ commands:
 
   # Update the build cache from the Docker daemon
   docker-save-cache:
+    parameters:
+      tag:
+        type: string
     steps:
       - run:
           name: "Save Docker image layer cache"
@@ -35,6 +38,9 @@ commands:
 
   # Persist Docker image to workspace
   docker-save-image:
+    parameters:
+      tag:
+        type: string
     steps:
       - run:
           name: "Save Docker image"
@@ -80,8 +86,10 @@ jobs:
               -t keystoneenclaveorg/keystone:<< parameters.tag >> \
               . --platform linux/x86_64
 
-      - docker-save-cache
-      - docker-save-image
+      - docker-save-cache:
+          tag: << parameters.tag >>
+      - docker-save-image:
+          tag: << parameters.tag >>
 
   build:
     docker:
