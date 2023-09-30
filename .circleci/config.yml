@@ -102,3 +102,4 @@ workflows:
     jobs:
       - docker-image-build:
           tag: init-rv64gc
+      - build
