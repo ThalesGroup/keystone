@@ -86,6 +86,8 @@ jobs:
   build:
     docker:
       - image: docker-git
+    steps:
+      - docker-load-image
 
 workflows:
   main:
