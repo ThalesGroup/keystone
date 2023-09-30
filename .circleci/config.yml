@@ -1,22 +1,14 @@
 version: 2.1
 
+
 commands:
+#############################
+## Docker-related commands ##
+#############################
 
-jobs:
-  build-docker-image:
-    docker:
-      - image: docker:git
-    parameters:
-      tag:
-        type: string
+  # Restore build cache back to the Docker daemon
+  docker-load-cache:
     steps:
-      # Check out Keystone so we can get the Docker image definition, and
-      # Prepare to build the image.
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-
-      # Restore build cache back to the Docker daemon
       - restore_cache:
           keys:
             - v1-keystone-docker-{{ .Branch }}
@@ -28,16 +20,9 @@ jobs:
             set +o pipefail
             docker load -i /caches/keystone-docker.tar | true
 
-      # Build the actual Docker image
-      - run:
-          name: "Build Docker image"
-          command: |
-            cd docker
-            docker build --cache-from=keystone-docker \
-              -t keystoneenclaveorg/keystone:<< parameters.tag >> \
-              . --platform linux/x86_64
-
-      # Update the build cache
+  # Update the build cache from the Docker daemon
+  docker-save-cache:
+    steps:
       - run:
           name: "Save Docker image layer cache"
           command: |
@@ -48,19 +33,62 @@ jobs:
           paths:
             - /caches/keystone-docker.tar
 
-      # Also persist the docker image so that we can use it in downstream jobs
+  # Persist Docker image to workspace
+  docker-save-image:
+    steps:
       - run:
           name: "Save Docker image"
           command: |
-            mkdir -p /images
-            docker image save -o "/images/keystone-docker" keystoneenclaveorg/keystone:<< parameters.tag >>
+            mkdir -p /workspace/images
+            docker image save -o "/workspace/images/keystone-docker" keystoneenclaveorg/keystone:<< parameters.tag >>
       - persist_to_workspace:
-          root: /images
+          root: /workspace
           paths:
-            - keystone-docker
+            - images/keystone-docker
+
+  # Load Docker image from workspace
+  docker-load-image:
+    steps:
+      - attach_workspace:
+          at: /workspace
+
+      - run:
+          name: "Load Docker image"
+          command: |
+            docker image load < "/workspace/images/keystone-docker"
+
+jobs:
+  docker-image-build:
+    docker:
+      - image: docker:git
+    parameters:
+      tag:
+        type: string
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      - docker-load-cache
+
+      # Build the actual Docker image
+      - run:
+          name: "Build Docker image"
+          command: |
+            cd docker
+            docker build --cache-from=keystone-docker \
+              -t keystoneenclaveorg/keystone:<< parameters.tag >> \
+              . --platform linux/x86_64
+
+      - docker-save-cache
+      - docker-save-image
+
+  build:
+    docker:
+      - image: docker-git
 
 workflows:
   main:
     jobs:
-      - build-docker-image:
+      - docker-image-build:
           tag: init-rv64gc

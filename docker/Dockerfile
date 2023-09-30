@@ -1,5 +1,4 @@
-FROM ubuntu:20.04
-ARG CHECKOUT=master
+FROM ubuntu:22.04
 RUN apt update
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
